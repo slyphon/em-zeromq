@@ -18,15 +18,18 @@ module EventMachine
         end
       end
 
-      def bind(socket_type, address, handler = nil, opts = {})
-        create(socket_type, :bind, address, handler, opts)
+      def bind(socket_type, address, handler = nil, opts = {}, &blk)
+        create(socket_type, :bind, address, handler, opts, &blk)
       end
 
-      def connect(socket_type, address, handler = nil, opts = {})
-        create(socket_type, :connect, address, handler, opts)
+      def connect(socket_type, address, handler = nil, opts = {}, &blk)
+        create(socket_type, :connect, address, handler, opts, &blk)
       end
       
-      def create(socket_type, bind_or_connect, address, handler, opts = {})
+      # block if given will be called with the socket *before* bind or connect is called
+      # to allow for setsockopt calls.
+      #
+      def create(socket_type, bind_or_connect, address, handler, opts = {}, &blk)
         socket_type = find_type(socket_type)
         socket = @context.socket(socket_type)
         
@@ -38,6 +41,8 @@ module EventMachine
         unless opts.empty?
           raise "unknown keys: #{opts.keys.join(', ')}"
         end
+
+        blk.call(socket) if blk
 
         if bind_or_connect == :bind
           socket.bind(address)
