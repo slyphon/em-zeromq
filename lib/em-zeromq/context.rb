@@ -82,6 +82,11 @@ module EventMachine
         ctx.terminate
         nil
       end
+
+      # has this context been terminated?
+      def closed?
+        !@context
+      end
       
     private
       def find_type(type)
