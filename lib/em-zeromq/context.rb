@@ -30,6 +30,9 @@ module EventMachine
       # to allow for setsockopt calls.
       #
       def create(socket_type, bind_or_connect, address, handler, opts = {}, &blk)
+        # XXX: raise an EM::ZeroMQ-specific error here
+        raise "context closed!" unless @context
+
         socket_type = find_type(socket_type)
         socket = @context.socket(socket_type)
         
@@ -62,6 +65,22 @@ module EventMachine
         end
 
         conn
+      end
+
+      # terminate the underlying ZMQ::Context
+      # note that you should shut down all of your sockets BEFORE calling terminate!
+      # otherwise BAD THINGS WILL HAPPEN
+      #
+      # from the guide:
+      #
+      #   Do not terminate the same context twice. The zmq_term in the main
+      #   thread will block until all sockets it knows about are safely closed.
+      #
+      def terminate
+        return unless @context
+        ctx, @context = @context, nil
+        ctx.terminate
+        nil
       end
       
     private

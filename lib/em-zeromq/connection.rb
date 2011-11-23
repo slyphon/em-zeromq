@@ -4,11 +4,12 @@ module EventMachine
       attr_accessor :on_readable, :on_writable, :handler
       attr_reader   :socket, :socket_type, :address
 
-      def initialize(socket, socket_type, address, handler)
+      def initialize(socket, socket_type, address, handler, context)
         @socket      = socket
         @socket_type = socket_type
         @handler     = handler
         @address     = address
+        @closed      = false
       end
       
       def self.map_sockopt(opt, name)
@@ -151,6 +152,11 @@ module EventMachine
         # ZMQ::EVENTS has issues in ZMQ HEAD, we'll ignore this till they're fixed
         # (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
       end
+
+      # has the underlying socket been closed?
+      def closed?
+        false|@closed
+      end
      
     private
     
@@ -165,6 +171,8 @@ module EventMachine
       # Detaches the socket from the EM loop,
       # then closes the socket
       def detach_and_close
+        return if @closed
+        @closed = true
         detach
         @socket.close
       end
