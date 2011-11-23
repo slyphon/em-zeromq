@@ -4,7 +4,7 @@ module EventMachine
       attr_accessor :on_readable, :on_writable, :handler
       attr_reader   :socket, :socket_type, :address
 
-      def initialize(socket, socket_type, address, handler, context)
+      def initialize(socket, socket_type, address, handler)
         @socket      = socket
         @socket_type = socket_type
         @handler     = handler
